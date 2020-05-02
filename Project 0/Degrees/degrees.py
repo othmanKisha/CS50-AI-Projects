@@ -91,38 +91,43 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-    # initializing the number of explored nodes
-    num_explored = 0
+    # The starting node ==> id of the source
     start = Node(state=source, parent=None, action=None)
-    # The frontier
-    frontier = StackFrontier()
+
+    # The frontier (Queue frontier ==> BFS)
+    frontier = QueueFrontier()
+
+    # Adding the source to the frontier
     frontier.add(start)
-    solution = None
+
     # The explored set
     explored = set()
+
+    # Initializing the solution as list
+    solution = []
 
     # Keep looping until solution found
     while True:
 
         # If nothing left in frontier, then no path
         if frontier.empty():
-            raise Exception("no solution")
+            return None
 
         # Choose a node from the frontier
         node = frontier.remove()
-        num_explored += 1
 
-        # If node is the goal, then we have a solution
+        # If node is the target, then we have a solution
         if node.state == target:
-            movies = []
-            persons = []
             while node.parent is not None:
-                movies.append(node.action)
-                persons.append(node.state)
+
+                # appending the (movie_id, person_id) to the solution
+                solution.append((node.action, node.state))
+
+                # traversing to the parent
                 node = node.parent
-            movies.reverse()
-            persons.reverse()
-            solution = (movies, persons)
+
+            # reversing the solution list to start from the source
+            solution.reverse()
             return solution
 
         # Mark node as explored
@@ -130,8 +135,25 @@ def shortest_path(source, target):
 
         # Add neighbors to frontier
         for movie, person in neighbors_for_person(node.state):
+
             if not frontier.contains_state(person) and person not in explored:
                 neighbor = Node(state=person, parent=node, action=movie)
+
+                # checking if the neighbour is the target before adding it to frontier
+                if neighbor.state == target:
+                    while neighbor.parent is not None:
+
+                        # appending the (movie_id, person_id) to the solution
+                        solution.append((neighbor.action, neighbor.state))
+
+                        # traversing to the parent
+                        neighbor = neighbor.parent
+
+                    # reversing the solution list to start from the source
+                    solution.reverse()
+                    return solution
+
+                # if it is not the target add it to the frontier
                 frontier.add(neighbor)
 
 
