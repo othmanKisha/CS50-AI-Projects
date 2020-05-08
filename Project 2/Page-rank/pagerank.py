@@ -57,7 +57,26 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+
+    # Initializing the distribution for each page to zero
+    prob_dist = {p: 0 for p in corpus}
+
+    # N is the number of pages in the corpus
+    N = len(corpus)
+
+    # Outgoing is the number of links in the page
+    outgoing = len(corpus[page])
+
+    if outgoing == 0:
+        for p in prob_dist:
+            prob_dist[p] = 1 / N
+    else:
+        for p in prob_dist:
+            prob_dist[p] = (1 - damping_factor) / N
+            if p != page and p in corpus[page]:
+                prob_dist[p] += damping_factor / outgoing
+
+    return prob_dist
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,7 +88,31 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+
+    # Initializing the pages' PageRank to zero
+    PageRanks = {page: 0 for page in corpus}
+
+    for turn in range(n):
+
+        # If we are in the first turn, pick a random page
+        if turn == 0:
+            random_sample = random.randint(1, len(corpus))
+
+        # Else pick a weighted random page depending on the previous turn
+        else:
+            weights = []
+            for i in range(len(corpus)):
+                weights += [i + 1] * int(trans[f"{i + 1}.html"]*100)
+            random_sample = random.choice(weights)
+
+        page = f"{random_sample}.html"
+        PageRanks[page] += 1
+        trans = transition_model(corpus, page, damping_factor)
+
+    # Making the sum of all pages' PageRank equal to 1
+    PageRanks = {page: PageRanks[page] / n for page in corpus}
+
+    return PageRanks
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -81,7 +124,41 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+
+    # Making every page that has 0 outgoing Links, connected to every page in the corpus including itself
+    for page in corpus:
+        if len(corpus[page]) == 0:
+            corpus[page] = set([p for p in corpus])
+
+    # The number of pages in the corpus
+    N = len(corpus)
+
+    # Initializing each page to have a page rank of 1/N
+    PageRanks = {page: 1 / N for page in corpus}
+
+    # Variable that indicates if we have a new iteration or not
+    new_iteration = True
+
+    while new_iteration:
+
+        # Assigning the previous ranks to prev
+        prev = {page: PageRanks[page] for page in PageRanks}
+
+        for p in corpus:
+            PageRanks[p] = (1 - damping_factor) / N
+            for i in corpus:
+                if p in corpus[i] and p != i:
+
+                    # Number of links outgoing from page i
+                    NumLinks = len(corpus[i])
+
+                    PageRanks[p] += damping_factor * (prev[i] / NumLinks)
+
+        # Checking if all pages haven't change by more than 0.001, if not go to a new iteration
+        if all(PageRanks[p] - prev[p] <= 0.001 for p in corpus):
+            new_iteration = False
+
+    return PageRanks
 
 
 if __name__ == "__main__":
