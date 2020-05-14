@@ -8,10 +8,10 @@ __init__.py
 
 *.pyc
 
-/*/gtsrb/
-
-gtsrb/
-
 */*/gtsrb
+
+*/*/gtsrb-small
+
+*/*/model.h5
 
 .vscode/
