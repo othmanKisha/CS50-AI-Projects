@@ -66,16 +66,15 @@ def load_data(filename):
 
     with open(filename) as csv_file:
         reader = csv.reader(csv_file)
+        next(reader)
         for row in reader:
-            # Because the first row is for headers
-            if row[0] != "Administrative":
-                evidence.append((
-                    [int(row[0]), float(row[1]), int(row[2]), float(row[3]), int(row[4]), float(row[5])] +
-                    [float(e) for e in row[6:9]] + [month[row[10]]] +
-                    [int(e) for e in row[11:14]] + [0 if row[15] == "New_Visitor" else 1] +
-                    [1 if row[16] == "TRUE" else 0]
-                ))
-                labels.append(1 if row[17] == "TRUE" else 0)
+            evidence.append((
+                [int(row[0]), float(row[1]), int(row[2]), float(row[3]), int(row[4]), float(row[5])] +
+                [float(e) for e in row[6:9]] + [month[row[10]]] +
+                [int(e) for e in row[11:14]] + [0 if row[15] == "New_Visitor" else 1] +
+                [1 if row[16] == "TRUE" else 0]
+            ))
+            labels.append(1 if row[17] == "TRUE" else 0)
 
     return (evidence, labels)
 
