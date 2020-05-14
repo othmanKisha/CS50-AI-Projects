@@ -13,3 +13,5 @@ __init__.py
 gtsrb/
 
 */*/gtsrb
+
+.vscode/
