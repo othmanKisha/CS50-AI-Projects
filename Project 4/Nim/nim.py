@@ -167,10 +167,11 @@ class NimAI():
 
         # This is based on the greedy epsilon approach
         actions = Nim.available_actions(state)
+        maximum = self.best_future_reward(state)
 
         # the maximum action if possible, otherwise it is just the first action in actions set
         max_action = [
-            key[1] for key, value in self.q.items() if value == self.best_future_reward(state) and key[1] in actions
+            key[1] for key, value in self.q.items() if value == maximum and key[1] in actions
         ][0] if len(self.q) != 0 and any(key[0] == tuple(state) for key in self.q) else next(iter(actions))
 
         # Return the best action if epsilon is False otherwise return a random choice
