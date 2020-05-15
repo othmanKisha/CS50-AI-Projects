@@ -59,21 +59,34 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
+
+    # Two lists one for evidence and the other for labels
     evidence = []
     labels = []
+
+    # Key-value dictionary that will map the month to a number
     month = {"Jan": 0, "Feb": 1, "Mar": 2, "April": 3, "May": 4, "June": 5,
              "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11}
 
+    # Reading the csv file
     with open(filename) as csv_file:
         reader = csv.reader(csv_file)
+
+        # Skip the first row of the file
         next(reader)
+
+        # For every row in the file
         for row in reader:
+
+            # Adding every element in the row as discribed above
             evidence.append((
                 [int(row[0]), float(row[1]), int(row[2]), float(row[3]), int(row[4]), float(row[5])] +
                 [float(e) for e in row[6:9]] + [month[row[10]]] +
                 [int(e) for e in row[11:14]] + [0 if row[15] == "New_Visitor" else 1] +
                 [1 if row[16] == "TRUE" else 0]
             ))
+
+            # Adding the label (output)
             labels.append(1 if row[17] == "TRUE" else 0)
 
     return (evidence, labels)
@@ -84,7 +97,14 @@ def train_model(evidence, labels):
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    return KNeighborsClassifier(n_neighbors=1).fit(evidence, labels)
+
+    # This will return a K nearest neighbor classifier model
+    model = KNeighborsClassifier(n_neighbors=1)
+
+    # training the model with the training data
+    model.fit(evidence, labels)
+
+    return model
 
 
 def evaluate(labels, predictions):
@@ -102,14 +122,30 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    return (
-        len([
-            prediction for (label, prediction) in zip(labels, predictions) if label == 1 and label == prediction
-        ]) / len([label for label in labels if label == 1]),
-        len([
-            prediction for (label, prediction) in zip(labels, predictions) if label == 0 and label == prediction
-        ]) / len([label for label in labels if label == 0])
-    )
+
+    # The count of how many times the prediction matches the label whewn it is TRUE
+    correct_positive_match = len([
+        prediction for (label, prediction) in zip(labels, predictions) if label == 1 and label == prediction
+    ])
+
+    # Count of how many labels are TRUE
+    num_positive_labels = len([label for label in labels if label == 1])
+
+    # The count of how many times the prediction matches the label whewn it is FALSE
+    correct_negative_match = len([
+        prediction for (label, prediction) in zip(labels, predictions) if label == 0 and label == prediction
+    ])
+
+    # Count of how many labels are FALSE
+    num_negative_labels = len([label for label in labels if label == 0])
+
+    # True positive rate
+    sensitivity = correct_positive_match / num_positive_labels
+
+    # True Negative rate
+    specificity = correct_negative_match / num_negative_labels
+
+    return (sensitivity, specificity)
 
 
 if __name__ == "__main__":
