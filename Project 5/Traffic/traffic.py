@@ -58,14 +58,29 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
+
+    # two lists, one for labels and the other for images
     images = []
     labels = []
 
+    # Walking through all folders in the directory
     for directory, _, files in os.walk(data_dir, topdown=True):
+
+        # If there is files in this directory it means we are inside one of the categories folder
         if len(files) != 0:
-            category = directory.replace(os.path.join(data_dir, ''), '')
+
+            # The category is just converting the name of the folder to int
+            category = int(directory.replace(os.path.join(data_dir, ''), ''))
+
+            # Looping over every image in the folder
             for image in files:
-                labels.append(int(category))
+
+                # Adding the category to correspond for the image
+                labels.append(category)
+
+                # First we read the image providing the path, opencv will read it as numpy ndarray
+                # Then it will be resized to fill the width and height specified
+                # Finally the resized image (nd array) will be added to images list
                 images.append(cv2.resize(
                     cv2.imread(os.path.join(directory, image)),
                     (IMG_WIDTH, IMG_HEIGHT),
@@ -81,21 +96,38 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
+    # Creating a convolutional neural network
     model = tf.keras.models.Sequential([
+
+        # There are two layers for convolution and for pooling
+        # Convolution with 3x3 filtering
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        ),
+
+        # Pooling using max pooling
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        # The same convolution and pooling layers
         tf.keras.layers.Conv2D(
             32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-        tf.keras.layers.Conv2D(
-            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
-        ),
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        # This layer for flattening the pixels
         tf.keras.layers.Flatten(),
+
+        # Middle layer with 128 nodes and reLU for activation
         tf.keras.layers.Dense(128, activation="relu"),
+
+        # Dropout of 0.5
         tf.keras.layers.Dropout(0.5),
+
+        # Output layer with NUM_CATEGORIES of nodes
         tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
     ])
 
+    # Compiling the model and focusing on accuracy
     model.compile(
         optimizer="adam",
         loss="categorical_crossentropy",
