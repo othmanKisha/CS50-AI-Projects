@@ -101,7 +101,11 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
+
+        # The key is a tuple of state (as tuple) and action
         key = (tuple(state), action)
+
+        # Return the Q value if exists otherwise return zero
         return self.q[key] if key in self.q else 0
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
@@ -120,7 +124,11 @@ class NimAI():
         is the sum of the current reward and estimated future rewards.
         """
         key = (tuple(state), action)
+
+        # Calculate the Q value based on the formula above
         new_q = old_q + self.alpha * ((reward + future_rewards) - old_q)
+
+        # Updating the existing Q-value or inserting a new one
         self.q.update({key: new_q})
 
     def best_future_reward(self, state):
@@ -133,7 +141,12 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
+
+        # All the possible actions to perform with this state
         actions = Nim.available_actions(state)
+
+        # Return the maximum Q-value when combineing the state and action of the actions set
+        # this is if there are actions, otherwise return zero
         return 0 if len(actions) == 0 else max([self.get_q_value(state, action) for action in actions])
 
     def choose_action(self, state, epsilon=True):
@@ -151,11 +164,17 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
+
+        # This is based on the greedy epsilon approach
         actions = Nim.available_actions(state)
+
+        # the maximum action if possible, otherwise it is just the first action in actions set
         max_action = [
             key[1] for key, value in self.q.items() if value == self.best_future_reward(state) and key[1] in actions
         ][0] if len(self.q) != 0 and any(key[0] == tuple(state) for key in self.q) else next(iter(actions))
 
+        # Return the best action if epsilon is False otherwise return a random choice
+        # With probability epsilon to be random, 1- epsilon to be the best action
         return max_action if not epsilon else random.choice((
             [max_action] * int((1 - self.epsilon) * 100) +
             [action for action in actions] * int(self.epsilon * 100)
