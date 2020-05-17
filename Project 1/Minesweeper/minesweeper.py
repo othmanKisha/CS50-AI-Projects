@@ -287,7 +287,5 @@ class MinesweeperAI():
         while True:
             i = random.randint(0, self.height - 1)
             j = random.randint(0, self.width - 1)
-            if (i, j) in self.moves_made or (i, j) in self.mines:
-                pass
-
-            return (i, j)
+            if not (i, j) in self.moves_made and not (i, j) in self.mines:
+                return (i, j)
