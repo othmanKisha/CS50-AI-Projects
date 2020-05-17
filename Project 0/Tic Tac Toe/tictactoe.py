@@ -26,24 +26,12 @@ def player(board):
     if terminal(board):
         return None
 
-    # Counting the number of x
-    xcount = 0
-    # counting the number of o
-    ocount = 0
-
     # Looping over the board to count X and O, if both 0 then the player is X
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == X:
-                xcount += 1
-            elif board[i][j] == O:
-                ocount += 1
+    xcount = sum([1 for i in range(3) for j in range(3) if board[i][j] == X])
+    ocount = sum([1 for i in range(3) for j in range(3) if board[i][j] == O])
 
     # even if both are 0, then x will play
-    if ocount == xcount:
-        return X
-    else:
-        return O
+    return X if ocount == xcount else O
 
 
 def actions(board):
@@ -55,15 +43,7 @@ def actions(board):
         return None
 
     # The set of all possible actions
-    actions_set = set()
-
-    # Looping over the board
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == EMPTY:
-                actions_set.add((i, j))
-
-    return actions_set
+    return {(i, j) for i in range(3) for j in range(3) if board[i][j] == EMPTY}
 
 
 def result(board, action):
@@ -126,15 +106,8 @@ def terminal(board):
     Returns True if game is over, False otherwise.
     """
     # Check if there is a winner
-    if winner(board) != None:
-        return True
-
     # Check if every cell is filled
-    is_full = all(cell for row in board for cell in row)
-    if is_full:
-        return True
-
-    return False
+    return True if winner(board) != None or all(cell for row in board for cell in row) else False
 
 
 def utility(board):
@@ -142,23 +115,33 @@ def utility(board):
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
     # Assuming the we have a terminal board
-    if winner(board) == X:
-        # In case X wins
-        return 1
-    elif winner(board) == O:
-        # In case O wins
-        return -1
-    else:
-        # In case no body wins
-        return 0
+    return 1 if winner(board) == X else -1 if winner(board) == O else 0
 
 
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    # Method to retreive the max/min-value
+    def value(board, maxmin):
+
+        # Check if the game is terminated, then return utility
+        if terminal(board):
+            return utility(board)
+
+        # Set of all possible actions
+        actions_set = actions(board)
+
+        # Return the min/max-value of all the max/min-values in the list of resulting utilities from actions
+        return min([
+            value(result(board, action), "max") for action in actions_set
+        ]) if maxmin == "min" else max([
+            value(result(board, action), "min") for action in actions_set
+        ])
+
     # Checking for the turn
     turn = player(board)
+
     # List of all possible actions
     actions_set = actions(board)
 
@@ -168,58 +151,14 @@ def minimax(board):
 
         # If turn is X ==> we look for max-value
         if turn == X:
-            """ 
-            If the min-value resulting from the board after making this action
-            is the same as max-value of the current board ==> return the action
-            """
-            if min_value(new_board) == max_value(board):
+            # If the min-value resulting from the board after making this action
+            # is the same as max-value of the current board ==> return the action
+            if value(new_board, "min") == value(board, "max"):
                 return action
 
         # If turn is O ==> we look for min-value
         elif turn == O:
-            """ 
-            If the max-value resulting from the board after making this action
-            is the same as min-value of the current board ==> return the action
-            """
-            if max_value(new_board) == min_value(board):
+            # If the max-value resulting from the board after making this action
+            # is the same as min-value of the current board ==> return the action
+            if value(new_board, "max") == value(board, "min"):
                 return action
-
-
-def max_value(board):
-
-    # Check if the game is terminated, then return utility
-    if terminal(board):
-        return utility(board)
-
-    # Set of all possible actions
-    actions_set = actions(board)
-    # List of resulting utilities from actions
-    utilities = []
-
-    # Looping over the actions and appending the min-value result
-    for action in actions_set:
-        new_board = result(board, action)
-        utilities.append(min_value(new_board))
-
-    # Return the max-value of all the min-values in utilities list
-    return max(utilities)
-
-
-def min_value(board):
-
-    # Check if the game is terminated, then return utility
-    if terminal(board):
-        return utility(board)
-
-    # Set of all possible actions
-    actions_set = actions(board)
-    # List of resulting utilities from actions
-    utilities = []
-
-    # Looping over the actions and appending the max-value result
-    for action in actions_set:
-        new_board = result(board, action)
-        utilities.append(max_value(new_board))
-
-    # Return the min-value of all the max-values in utilities list
-    return min(utilities)
