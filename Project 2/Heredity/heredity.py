@@ -210,21 +210,14 @@ def normalize(probabilities):
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
     for person in probabilities:
-        summation = 0
+        person_prob = probabilities[person]
+        g_factor = sum([person_prob["gene"][g] for g in range(3)])
         for i in range(3):
-            summation += probabilities[person]["gene"][i]
-        gene_factor = 1 / summation
+            probabilities[person]["gene"][i] /= g_factor
 
-        for i in range(3):
-            probabilities[person]["gene"][i] *= gene_factor
-
-        summation = 0
-        for trait in probabilities[person]["trait"]:
-            summation += probabilities[person]["trait"][trait]
-        trait_factor = 1 / summation
-
-        probabilities[person]["trait"][True] *= trait_factor
-        probabilities[person]["trait"][False] *= trait_factor
+        t_factor = person_prob["trait"][True] + person_prob["trait"][False]
+        probabilities[person]["trait"][True] /= t_factor
+        probabilities[person]["trait"][False] /= t_factor
 
 
 if __name__ == "__main__":
