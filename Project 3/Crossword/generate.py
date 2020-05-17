@@ -102,7 +102,6 @@ class CrosswordCreator():
         # Checking for the domain of each variable
         for variable, domain in self.domains.items():
             for value in domain.copy():
-
                 # If the length of the word is not the same as the variable then remove it
                 if len(value) != variable.length:
                     self.domains[variable].remove(value)
@@ -201,19 +200,10 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        # Simple method to calculate the count of variables that has a specified word in their domain
-        def number_of_overlaps(val):
-            num = 0
-            for n in self.crossword.neighbors(var):
-                if val in self.domains[n] and not n in assignment:
-                    num += 1
-            return num
-
         # Sorting a list of domain values for var based on the count of neighbor variables that contain a value
-        ordered_domain = list(self.domains[var])
-        ordered_domain.sort(key=number_of_overlaps)
-
-        return ordered_domain
+        return sorted(list(self.domains[var]), key=lambda val: sum([
+            1 for n in self.crossword.neighbors(var) if val in self.domains[n] and not n in assignment
+        ]))
 
     def select_unassigned_variable(self, assignment):
         """
@@ -233,17 +223,15 @@ class CrosswordCreator():
         v = next(iter(unassigned_vars))
 
         for var in unassigned_vars:
-            if v == var:
-                pass
-
-            # If var has smaller domain make it the selected
-            if len(self.domains[v]) > len(self.domains[var]):
-                v = var
-            elif len(self.domains[v]) == len(self.domains[var]):
-
-                # If var has higher rank make it selected
-                if len(self.crossword.neighbors(v)) <= len(self.crossword.neighbors(var)):
+            if v != var:
+                # If var has smaller domain make it the selected
+                if len(self.domains[v]) > len(self.domains[var]):
                     v = var
+                elif len(self.domains[v]) == len(self.domains[var]):
+
+                    # If var has higher rank make it selected
+                    if len(self.crossword.neighbors(v)) <= len(self.crossword.neighbors(var)):
+                        v = var
 
         return v
 
