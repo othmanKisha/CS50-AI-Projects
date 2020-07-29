@@ -1,4 +1,4 @@
-# Introduction to Aritificial Intelligence with Python Projects
+# Introduction to Artificial Intelligence with Python Projects
 
 ## Content
 
